@@ -22,11 +22,8 @@ export default function Page() {
     }
 
     debounceRef.current = setTimeout(() => {
-      if (inputValue !== searchTerm) {
-        setSearchTerm(inputValue);
-        // Don't reset page when searching - might want to keep it at 1
-        setCurrentPage(1);
-      }
+      setSearchTerm(inputValue);
+      setCurrentPage(1);
     }, 500);
 
     return () => {
@@ -34,7 +31,7 @@ export default function Page() {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [inputValue, searchTerm]);
+  }, [inputValue]);
 
   useEffect(() => {
     fetchHouses(currentPage, itemsPerPage, searchTerm);

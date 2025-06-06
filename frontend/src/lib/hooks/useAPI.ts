@@ -36,6 +36,12 @@ interface Pagination {
   previousPage: number | null;
 }
 
+interface APIResponse {
+  data: House[];
+  pagination?: Pagination;
+  error?: string;
+}
+
 export const useAPI = () => {
   const [houses, setHouses] = useState<House[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -43,35 +49,51 @@ export const useAPI = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchHouses = useCallback(
-    async (page: number, limit: number, name: string = '') => {
+    async (page: number = 1, limit: number = 20, name: string = '') => {
       setLoading(true);
       setError(null);
 
       try {
         const API_URL = await getAPIUrl();
-        const url = new URL(`${API_URL}/houses`);
-        url.searchParams.append('page', page.toString());
-        url.searchParams.append('limit', limit.toString());
-        if (name) {
-          url.searchParams.append('name', name);
+        const url = new URL(`${API_URL.replace(/\/$/, '')}/houses`);
+
+        // Add query parameters
+        const params = new URLSearchParams();
+        params.append('page', Math.max(1, page).toString());
+        params.append('limit', Math.min(100, Math.max(1, limit)).toString());
+
+        if (name.trim()) {
+          params.append('name', name.trim());
         }
 
-        const response = await fetch(url.toString(), {
+        const response = await fetch(`${url.toString()}?${params}`, {
           method: 'GET',
           headers: {
+            Accept: 'application/json',
             'Content-Type': 'application/json',
           },
         });
 
         if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(
+            errorData.message || `HTTP error! status: ${response.status}`
+          );
         }
 
-        const data = await response.json();
-        setHouses(data.data || []);
+        const data: APIResponse = await response.json();
+
+        if (!data.data) {
+          throw new Error('Invalid API response format');
+        }
+
+        setHouses(data.data);
         setPagination(data.pagination || null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch houses');
+        const message =
+          err instanceof Error ? err.message : 'Failed to fetch houses';
+        setError(message);
+        console.error('API Error:', message);
         setHouses([]);
         setPagination(null);
       } finally {

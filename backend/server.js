@@ -8,7 +8,7 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 app.use(
   cors({
     origin: '*',
-    methods: ['GET', 'OPTIONS'],
+    methods: ['GET', 'OPTIONS', 'HEAD'],
     allowedHeaders: ['Content-Type'],
   })
 );
@@ -244,6 +244,17 @@ const paginateArray = (array, page, limit) => {
   return array.slice(startIndex, endIndex);
 };
 
+app.head('/', (req, res) => res.sendStatus(200));
+app.head('/health', (req, res) => res.sendStatus(200));
+app.head('/houses', (req, res) => res.sendStatus(200));
+
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Welcome to the Hogwarts Houses API',
+    availableRoutes: ['/health', '/houses', '/houses/all', '/houses/:id'],
+  });
+});
+
 app.get('/health', (req, res) => {
   console.log('Health check called');
   res.status(200).json({
@@ -358,22 +369,13 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`📊 Loaded ${houses.length} houses`);
   console.log(`📡 API endpoints:`);
   console.log(`   GET /health - Health check`);
-  console.log(
-    `   GET /houses - Get houses with pagination (default: page=1, limit=20)`
-  );
+  console.log(`   GET /houses - Get houses with pagination`);
   console.log(`   GET /houses/all - Get all houses without pagination`);
-  console.log(
-    `   GET /houses?name=<search> - Filter houses by name (with pagination)`
-  );
+  console.log(`   GET /houses?name=<search> - Filter by name`);
   console.log(`   GET /houses/:id - Get house by ID`);
-  console.log(`\n🔍 Example queries:`);
-  console.log(`   http://localhost:${PORT}/houses`);
-  console.log(`   http://localhost:${PORT}/houses?page=1&limit=2`);
-  console.log(`   http://localhost:${PORT}/houses?name=ffi&page=1&limit=10`);
-  console.log(`   http://localhost:${PORT}/houses/all`);
-  console.log(`\n📄 Pagination parameters:`);
-  console.log(`   page: Page number (default: 1, min: 1)`);
-  console.log(`   limit: Items per page (default: 20, min: 1, max: 100)`);
+  console.log(
+    `\n📄 Pagination parameters: page (default: 1), limit (default: 20, max: 100)`
+  );
 });
 
 module.exports = app;
