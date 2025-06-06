@@ -2,26 +2,12 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const PORT = process.env.PORT || 3001;
 
-app.use(
-  cors({
-    origin: '*',
-    methods: ['GET', 'OPTIONS', 'HEAD'],
-    allowedHeaders: ['Content-Type'],
-  })
-);
+app.use(cors());
 app.use(express.json());
 
-app.use((req, res, next) => {
-  if (NODE_ENV === 'development') {
-    console.log(`${req.method} ${req.path} - Query:`, req.query);
-  }
-  next();
-});
-
-const houses = [
+const housesData = [
   {
     id: '0367baf3-1cb6-4baf-bede-48e17e1cd005',
     name: 'Gryffindor',
@@ -50,7 +36,7 @@ const houses = [
       },
       {
         id: '21f22e43-efd9-4a43-87f5-eab5fb1666ea',
-        name: 'Chivalry',
+        name: 'Chivalary',
       },
       {
         id: '60d8f5d0-de4b-41f7-b152-40543555bf3a',
@@ -102,7 +88,7 @@ const houses = [
       },
       {
         id: '78db6224-33d1-490d-a553-9bbbedb3282a',
-        name: 'Intelligence',
+        name: 'Inteligence',
       },
       {
         id: 'ab88a4fb-1c4d-4e14-88bf-7f55dfabb75a',
@@ -199,7 +185,7 @@ const houses = [
       },
       {
         id: '36dad9bf-010e-47ef-8908-ecb6d5acfac5',
-        name: 'Self-preservation',
+        name: 'Selfpreservation',
       },
       {
         id: '42b7c304-5e62-4fae-9e52-f8c6a106e406',
@@ -221,161 +207,43 @@ const houses = [
   },
 ];
 
-const createPaginationMeta = (totalItems, page, limit) => {
-  const totalPages = Math.ceil(totalItems / limit);
-  const hasNextPage = page < totalPages;
-  const hasPreviousPage = page > 1;
-
-  return {
-    currentPage: page,
-    totalPages,
-    totalItems,
-    itemsPerPage: limit,
-    hasNextPage,
-    hasPreviousPage,
-    nextPage: hasNextPage ? page + 1 : null,
-    previousPage: hasPreviousPage ? page - 1 : null,
-  };
-};
-
-const paginateArray = (array, page, limit) => {
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-  return array.slice(startIndex, endIndex);
-};
-
-app.head('/', (req, res) => res.sendStatus(200));
-app.head('/health', (req, res) => res.sendStatus(200));
-app.head('/houses', (req, res) => res.sendStatus(200));
-
-app.get('/', (req, res) => {
-  res.status(200).json({
-    message: 'Welcome to the Hogwarts Houses API',
-    availableRoutes: ['/health', '/houses', '/houses/all', '/houses/:id'],
-  });
-});
-
-app.get('/health', (req, res) => {
-  console.log('Health check called');
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    housesCount: houses.length,
-  });
-});
-
 app.get('/houses', (req, res) => {
-  console.log('Houses endpoint called', req.query);
-
-  try {
-    const { name, page = 1, limit = 20 } = req.query;
-
-    const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
-
-    let filteredHouses = houses;
-
-    if (name && typeof name === 'string') {
-      const searchTerm = name.toLowerCase().trim();
-      filteredHouses = houses.filter((house) =>
-        house.name.toLowerCase().includes(searchTerm)
-      );
-      console.log(
-        `Filtered by "${searchTerm}", found ${filteredHouses.length} houses`
-      );
-    }
-
-    const paginatedHouses = paginateArray(filteredHouses, pageNum, limitNum);
-
-    res.status(200).json({
-      data: paginatedHouses,
-      pagination: createPaginationMeta(
-        filteredHouses.length,
-        pageNum,
-        limitNum
-      ),
-      searchTerm: name || null,
-    });
-  } catch (error) {
-    console.error('Error in /houses route:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: error.message,
-    });
-  }
-});
-
-app.get('/houses/all', (req, res) => {
-  console.log('All houses endpoint called (no pagination)');
-
   try {
     const { name } = req.query;
 
-    if (!name) {
-      console.log(`Returning all houses (${houses.length} total)`);
-      return res.status(200).json(houses);
+    let filteredHouses = housesData;
+
+    if (name) {
+      filteredHouses = housesData.filter((house) =>
+        house.name.toLowerCase().includes(name.toLowerCase())
+      );
     }
 
-    const filteredHouses = houses.filter((house) =>
-      house.name.toLowerCase().includes(name.toLowerCase())
-    );
-
-    console.log(`Filtered by "${name}", found ${filteredHouses.length} houses`);
-    res.status(200).json(filteredHouses);
+    res.json(filteredHouses);
   } catch (error) {
-    console.error('Error in /houses/all route:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: error.message,
-    });
+    console.error('Error fetching houses:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-app.get('/houses/:id', (req, res) => {
-  console.log('House by ID called:', req.params.id);
-
-  try {
-    const { id } = req.params;
-    const house = houses.find((h) => h.id === id);
-
-    if (!house) {
-      console.log('House not found:', id);
-      return res.status(404).json({ error: 'House not found' });
-    }
-
-    console.log('Found house:', house.name);
-    res.status(200).json(house);
-  } catch (error) {
-    console.error('Error in /houses/:id route:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: error.message,
-    });
-  }
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-app.use((req, res) => {
-  console.log('404 - Route not found:', req.method, req.path);
-  res.status(404).json({
-    error: 'Route not found',
-    method: req.method,
-    path: req.path,
-    availableRoutes: ['/health', '/houses', '/houses/all', '/houses/:id'],
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Wizard Houses API',
+    endpoints: {
+      houses: '/houses',
+      health: '/health',
+    },
   });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🏰 Hogwarts Houses API server running on port ${PORT}`);
-  console.log(`📊 Loaded ${houses.length} houses`);
-  console.log(`📡 API endpoints:`);
-  console.log(`   GET /health - Health check`);
-  console.log(`   GET /houses - Get houses with pagination`);
-  console.log(`   GET /houses/all - Get all houses without pagination`);
-  console.log(`   GET /houses?name=<search> - Filter by name`);
-  console.log(`   GET /houses/:id - Get house by ID`);
-  console.log(
-    `\n📄 Pagination parameters: page (default: 1), limit (default: 20, max: 100)`
-  );
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  console.log(`Houses API available at: http://localhost:${PORT}/houses`);
+  console.log(`Health check at: http://localhost:${PORT}/health`);
 });
 
 module.exports = app;
