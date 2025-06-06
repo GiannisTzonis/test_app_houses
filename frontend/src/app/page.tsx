@@ -48,7 +48,7 @@ export default function Page() {
   };
 
   const renderedCards = useMemo(() => {
-    return (houses || []).map((house, index) => (
+    return houses.map((house, index) => (
       <Card
         key={`${house.id}-${index}`}
         house={house}
@@ -85,8 +85,7 @@ export default function Page() {
             <div className="mt-2 text-sm text-gray-600">
               <span>
                 {pagination?.totalItems || 0} result
-                {pagination?.totalItems !== 1 ? 's' : ''} for &ldquo;
-                {searchTerm}&rdquo;
+                {pagination?.totalItems !== 1 ? 's' : ''} for “{searchTerm}”
               </span>
             </div>
           )}
@@ -98,13 +97,13 @@ export default function Page() {
           </div>
         )}
 
-        {loading && !houses?.length ? (
+        {loading && houses.length === 0 ? (
           <div className="flex justify-center items-center py-12">
             <IconLoader2 className="w-8 h-8 animate-spin text-blue-600" />
           </div>
         ) : (
           <>
-            {(!houses || houses.length === 0) && searchTerm ? (
+            {houses.length === 0 && searchTerm ? (
               <EmptyState
                 title="No houses found"
                 description="Try adjusting your search criteria."
