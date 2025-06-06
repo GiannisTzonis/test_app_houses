@@ -7,7 +7,6 @@ import EmptyState from '@/lib/components/EmptyState';
 import { IconLoader2 } from '@tabler/icons-react';
 import { useAPI } from '@/lib/hooks/useAPI';
 
-// In your page component
 export default function Page() {
   const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,7 +16,6 @@ export default function Page() {
 
   const { houses = [], pagination, loading, error, fetchHouses } = useAPI();
 
-  // Debounce the search input
   useEffect(() => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -26,7 +24,7 @@ export default function Page() {
     debounceRef.current = setTimeout(() => {
       if (inputValue !== searchTerm) {
         setSearchTerm(inputValue);
-        setCurrentPage(1); // Reset to first page when search changes
+        setCurrentPage(1);
       }
     }, 500);
 
@@ -37,7 +35,6 @@ export default function Page() {
     };
   }, [inputValue, searchTerm]);
 
-  // Fetch houses when page, itemsPerPage, or searchTerm changes
   useEffect(() => {
     fetchHouses(currentPage, itemsPerPage, searchTerm);
   }, [fetchHouses, currentPage, itemsPerPage, searchTerm]);
@@ -52,14 +49,12 @@ export default function Page() {
     setCurrentPage(1);
   };
 
-  // Memoize rendered cards to prevent unnecessary re-renders
   const renderedCards = useMemo(() => {
     return houses.map((house) => (
       <Card key={house.id} house={house} searchTerm={searchTerm} />
     ));
   }, [houses, searchTerm]);
 
-  // Calculate result count
   const resultCount = pagination?.totalItems || houses.length;
 
   return (
@@ -69,7 +64,7 @@ export default function Page() {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search house names..."
+              placeholder="Search houses"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               className="block w-full px-2 py-3 border border-gray-300 rounded-lg 

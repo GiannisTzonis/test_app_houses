@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 
-// Pre-defined gradient combinations to ensure Tailwind includes these classes
 const GRADIENT_MAP: Record<string, string> = {
   'scarlet-gold': 'from-red-600 to-yellow-500',
   'gold-scarlet': 'from-yellow-500 to-red-600',
@@ -53,7 +52,6 @@ const parseHouseColors = (colorsString: string): string => {
     }
   }
 
-  // Fallback to white-black gradient
   return GRADIENT_MAP['white-black'];
 };
 
