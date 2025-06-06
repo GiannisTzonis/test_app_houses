@@ -14,7 +14,7 @@ export default function Page() {
   const [itemsPerPage] = useState(4);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { houses, pagination, loading, error, fetchHouses } = useAPI();
+  const { houses = [], pagination, loading, error, fetchHouses } = useAPI();
 
   useEffect(() => {
     if (debounceRef.current) {
@@ -48,7 +48,7 @@ export default function Page() {
   };
 
   const renderedCards = useMemo(() => {
-    return houses?.map((house, index) => (
+    return (houses || []).map((house, index) => (
       <Card
         key={`${house.id}-${index}`}
         house={house}
@@ -98,13 +98,13 @@ export default function Page() {
           </div>
         )}
 
-        {loading && !houses.length ? (
+        {loading && !houses?.length ? (
           <div className="flex justify-center items-center py-12">
             <IconLoader2 className="w-8 h-8 animate-spin text-blue-600" />
           </div>
         ) : (
           <>
-            {houses.length === 0 && searchTerm ? (
+            {(!houses || houses.length === 0) && searchTerm ? (
               <EmptyState
                 title="No houses found"
                 description="Try adjusting your search criteria."
