@@ -2,7 +2,11 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
+
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 app.use(cors());
