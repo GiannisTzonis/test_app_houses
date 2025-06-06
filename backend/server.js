@@ -44,7 +44,7 @@ const houses = [
       },
       {
         id: '21f22e43-efd9-4a43-87f5-eab5fb1666ea',
-        name: 'Chivalry',
+        name: 'Chivalary',
       },
       {
         id: '60d8f5d0-de4b-41f7-b152-40543555bf3a',
@@ -96,7 +96,7 @@ const houses = [
       },
       {
         id: '78db6224-33d1-490d-a553-9bbbedb3282a',
-        name: 'Intelligence',
+        name: 'Inteligence',
       },
       {
         id: 'ab88a4fb-1c4d-4e14-88bf-7f55dfabb75a',
@@ -193,8 +193,7 @@ const houses = [
       },
       {
         id: '36dad9bf-010e-47ef-8908-ecb6d5acfac5',
-        name: 'Self-preservation',
-        consistency,
+        name: 'Selfpreservation',
       },
       {
         id: '42b7c304-5e62-4fae-9e52-f8c6a106e406',
@@ -215,7 +214,6 @@ const houses = [
     ],
   },
 ];
-
 const createPaginationMeta = (totalItems, page, limit) => {
   const totalPages = Math.ceil(totalItems / limit);
   const hasNextPage = page < totalPages;
