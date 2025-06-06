@@ -5,7 +5,13 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-app.use(cors());
+app.use(
+  cors({
+    origin: '*',
+    methods: ['GET', 'OPTIONS'],
+    allowedHeaders: ['Content-Type'],
+  })
+);
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -248,7 +254,7 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/houses', (req, res) => {
-  console.log('Houses endpoint called');
+  console.log('Houses endpoint called', req.query);
 
   try {
     const { name, page = 1, limit = 20 } = req.query;
@@ -258,29 +264,26 @@ app.get('/houses', (req, res) => {
 
     let filteredHouses = houses;
 
-    if (name) {
+    if (name && typeof name === 'string') {
+      const searchTerm = name.toLowerCase().trim();
       filteredHouses = houses.filter((house) =>
-        house.name.toLowerCase().includes(name.toLowerCase())
+        house.name.toLowerCase().includes(searchTerm)
       );
       console.log(
-        `Filtered by "${name}", found ${filteredHouses.length} houses`
+        `Filtered by "${searchTerm}", found ${filteredHouses.length} houses`
       );
     }
 
     const paginatedHouses = paginateArray(filteredHouses, pageNum, limitNum);
-    const pagination = createPaginationMeta(
-      filteredHouses.length,
-      pageNum,
-      limitNum
-    );
-
-    console.log(
-      `Page ${pageNum}, showing ${paginatedHouses.length} of ${filteredHouses.length} houses`
-    );
 
     res.status(200).json({
       data: paginatedHouses,
-      pagination,
+      pagination: createPaginationMeta(
+        filteredHouses.length,
+        pageNum,
+        limitNum
+      ),
+      searchTerm: name || null,
     });
   } catch (error) {
     console.error('Error in /houses route:', error);

@@ -24,6 +24,7 @@ export default function Page() {
     debounceRef.current = setTimeout(() => {
       if (inputValue !== searchTerm) {
         setSearchTerm(inputValue);
+        // Don't reset page when searching - might want to keep it at 1
         setCurrentPage(1);
       }
     }, 500);

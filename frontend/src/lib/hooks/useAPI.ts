@@ -46,36 +46,34 @@ export const useAPI = () => {
     async (page: number, limit: number, name: string = '') => {
       setLoading(true);
       setError(null);
-      setHouses([]);
-      setPagination(null);
 
       try {
         const API_URL = await getAPIUrl();
-        const url = new URL(API_URL);
+        const url = new URL(`${API_URL}/houses`);
         url.searchParams.append('page', page.toString());
         url.searchParams.append('limit', limit.toString());
         if (name) {
           url.searchParams.append('name', name);
         }
 
-        const response = await fetch(url.toString());
+        const response = await fetch(url.toString(), {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`Error: ${response.status}`);
         }
 
         const data = await response.json();
-
-        if (data.data && data.pagination) {
-          setHouses(data.data);
-          setPagination(data.pagination);
-        } else if (Array.isArray(data)) {
-          setHouses(data);
-          setPagination(null);
-        } else {
-          throw new Error('Invalid API response format');
-        }
+        setHouses(data.data || []);
+        setPagination(data.pagination || null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch houses');
+        setHouses([]);
+        setPagination(null);
       } finally {
         setLoading(false);
       }
