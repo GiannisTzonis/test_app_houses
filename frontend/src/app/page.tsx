@@ -7,6 +7,7 @@ import EmptyState from '@/lib/components/EmptyState';
 import { IconLoader2 } from '@tabler/icons-react';
 import { useAPI } from '@/lib/hooks/useAPI';
 
+// In your page component
 export default function Page() {
   const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,23 +17,27 @@ export default function Page() {
 
   const { houses = [], pagination, loading, error, fetchHouses } = useAPI();
 
+  // Debounce the search input
   useEffect(() => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
 
     debounceRef.current = setTimeout(() => {
-      setSearchTerm(inputValue);
-      setCurrentPage(1);
-    }, 800);
+      if (inputValue !== searchTerm) {
+        setSearchTerm(inputValue);
+        setCurrentPage(1); // Reset to first page when search changes
+      }
+    }, 500);
 
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [inputValue]);
+  }, [inputValue, searchTerm]);
 
+  // Fetch houses when page, itemsPerPage, or searchTerm changes
   useEffect(() => {
     fetchHouses(currentPage, itemsPerPage, searchTerm);
   }, [fetchHouses, currentPage, itemsPerPage, searchTerm]);
@@ -47,15 +52,15 @@ export default function Page() {
     setCurrentPage(1);
   };
 
+  // Memoize rendered cards to prevent unnecessary re-renders
   const renderedCards = useMemo(() => {
-    return houses.map((house, index) => (
-      <Card
-        key={`${house.id}-${index}`}
-        house={house}
-        searchTerm={searchTerm}
-      />
+    return houses.map((house) => (
+      <Card key={house.id} house={house} searchTerm={searchTerm} />
     ));
   }, [houses, searchTerm]);
+
+  // Calculate result count
+  const resultCount = pagination?.totalItems || houses.length;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -64,7 +69,7 @@ export default function Page() {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search houses"
+              placeholder="Search house names..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               className="block w-full px-2 py-3 border border-gray-300 rounded-lg 
@@ -76,6 +81,7 @@ export default function Page() {
               <button
                 onClick={handleClearSearch}
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                aria-label="Clear search"
               >
                 ✕
               </button>
@@ -84,8 +90,8 @@ export default function Page() {
           {!loading && searchTerm && (
             <div className="mt-2 text-sm text-gray-600">
               <span>
-                {pagination?.totalItems || 0} result
-                {pagination?.totalItems !== 1 ? 's' : ''} for “{searchTerm}”
+                {resultCount} house{resultCount !== 1 ? 's' : ''} found
+                {searchTerm && ` for "${searchTerm}"`}
               </span>
             </div>
           )}
@@ -103,21 +109,27 @@ export default function Page() {
           </div>
         ) : (
           <>
-            {houses.length === 0 && searchTerm ? (
+            {houses.length === 0 ? (
               <EmptyState
-                title="No houses found"
-                description="Try adjusting your search criteria."
+                title={searchTerm ? 'No houses found' : 'No houses available'}
+                description={
+                  searchTerm
+                    ? 'Try adjusting your search criteria.'
+                    : 'There might be an issue with the data source.'
+                }
               />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {renderedCards}
-              </div>
-            )}
-            {pagination && pagination.totalPages > 1 && (
-              <Pagination
-                pagination={pagination}
-                onPageChange={handlePageChange}
-              />
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  {renderedCards}
+                </div>
+                {pagination && pagination.totalPages > 1 && (
+                  <Pagination
+                    pagination={pagination}
+                    onPageChange={handlePageChange}
+                  />
+                )}
+              </>
             )}
           </>
         )}

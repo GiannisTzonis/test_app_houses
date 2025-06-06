@@ -36,15 +36,10 @@ interface Pagination {
   previousPage: number | null;
 }
 
-interface ApiResponse {
-  data: House[];
-  pagination: Pagination;
-}
-
 export const useAPI = () => {
   const [houses, setHouses] = useState<House[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchHouses = useCallback(
@@ -59,7 +54,6 @@ export const useAPI = () => {
         const url = new URL(API_URL);
         url.searchParams.append('page', page.toString());
         url.searchParams.append('limit', limit.toString());
-
         if (name) {
           url.searchParams.append('name', name);
         }
@@ -69,9 +63,17 @@ export const useAPI = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data: ApiResponse = await response.json();
-        setHouses(data.data);
-        setPagination(data.pagination);
+        const data = await response.json();
+
+        if (data.data && data.pagination) {
+          setHouses(data.data);
+          setPagination(data.pagination);
+        } else if (Array.isArray(data)) {
+          setHouses(data);
+          setPagination(null);
+        } else {
+          throw new Error('Invalid API response format');
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch houses');
       } finally {
