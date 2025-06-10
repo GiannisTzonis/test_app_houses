@@ -69,7 +69,7 @@ const Card: React.FC<CardProps> = ({ house }) => {
               setLocalSearchTerm(e.target.value)
             }
             placeholder="Search house traits"
-            className="block w-full px-2 py-3 border border-gray-300 rounded-lg 
+            className="block w-full max-w-70 px-2 py-3 border border-gray-300 rounded-lg 
                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
                          bg-white shadow-sm text-gray-900 placeholder-gray-500
                          transition-colors duration-200"

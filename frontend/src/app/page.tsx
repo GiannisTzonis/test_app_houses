@@ -71,7 +71,7 @@ export default function Page() {
               placeholder="Search houses"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="block w-full px-4 py-3 border border-gray-300 rounded-lg 
+              className="block w-full max-w-70 px-4 py-3 border border-gray-300 rounded-lg 
                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
                          bg-white shadow-sm text-gray-900 placeholder-gray-500
                          transition-colors duration-200"
